@@ -1,6 +1,6 @@
 from typing import AsyncGenerator
 
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
@@ -17,9 +17,16 @@ Base = declarative_base()
 
 metadata = MetaData()
 
-engine = create_async_engine(DATABASE_URL, poolclass=NullPool)
+SYNC_DATABASE_URL = (
+    f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}"
+    f"@{DB_HOST}:{DB_PORT}/{DB_NAME}"
+)
+engine = create_engine(SYNC_DATABASE_URL)
+session_maker = sessionmaker(engine)
+
+aengine = create_async_engine(DATABASE_URL, poolclass=NullPool)
 async_session_maker = sessionmaker(
-    engine, class_=AsyncSession, expire_on_commit=False
+    aengine, class_=AsyncSession, expire_on_commit=False
 )
 
 

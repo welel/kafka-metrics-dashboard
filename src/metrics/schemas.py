@@ -1,4 +1,5 @@
 import enum
+import typing
 
 from datetime import datetime
 
@@ -24,3 +25,12 @@ class OffsetReport(BaseModel):
     status: TopicStatus
     label: str
     name: str
+
+
+class OffsetGraphInit(BaseModel):
+    name: str
+    total: list[int]
+    queued: list[int]
+    processed: list[int]
+    requested: list[datetime]
+    processed_precent: list[float]

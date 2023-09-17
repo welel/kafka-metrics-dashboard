@@ -3,7 +3,7 @@ from statistics import mean
 from .schemas import TopicStatus
 
 
-async def offset_reports(offsets):
+async def get_offset_reports(offsets):
     """
 
     Returns:
@@ -89,8 +89,8 @@ async def offset_reports(offsets):
         if total == 0:
             offset["processed_precent"] = 100
         else:
-            offset["processed_precent"] = round(
-                offset["processed"] / total * 100, 2
+            offset["processed_precent"] = (
+                offset["processed"] / total * 100
             )
 
         if (

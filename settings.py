@@ -39,6 +39,7 @@ else:
     )
     sys.exit(1)
 
+# Database
 DB_USER = os.getenv("POSTGRES_USER")
 DB_NAME = os.getenv("POSTGRES_DB")
 DB_PASSWORD = os.getenv("POSTGRES_PASSWORD")
@@ -52,3 +53,9 @@ if not all((DB_USER, DB_NAME, DB_PASSWORD, DB_HOST, DB_PORT)):
         f"{DB_PORT=}."
     )
     sys.exit(1)
+
+TEMPLATES_PATH = os.path.join(BASE_DIR, "templates")
+
+# Metrics Server
+METRICS_SERVER_HOST = _config.get("metrics_server", "host")
+METRICS_SERVER_PORT = _config.get("metrics_server", "port")
