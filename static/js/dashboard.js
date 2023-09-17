@@ -44,38 +44,74 @@ function formatSecondsToTimeLeft(seconds) {
 }
 
 
-function fillTotals(offsets) {
-    let active = 0,
-        done = 0,
-        dead = 0,
-        total = 0,
-        processed = 0,
-        remainig = 0;
+function fillTotals(totals) {
+    $('#top_active').text(totals.active);
+    $('#top_done').text(totals.done);
+    $('#top_dead').text(totals.dead);
+    $('#top_total').text(formatToK(totals.total));
+    $('#top_processed').text(formatToK(totals.processed));
+    $('#top_remainig').text(formatToK(totals.queued));
+}
 
-    for (const [offset_name, values] of Object.entries(offsets)) {
-        total += values.total;
-        processed += values.processed;
-        remainig += values.remaining;
 
-        switch (values.status) {
-            case 'active':
-                active += 1;
-                break;
-            case 'done':
-                done += 1;
-                break;
-            case 'dead':
-                dead += 1;
-        }  
+function fillGraphTasksData(offset_name, graph_data) {
+    let chartData = {
+        labels: graph_data.labels,
+        datasets: [{
+            label: 'Processed',
+            data: graph_data.lines.processed,
+            fill: false,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1
+        },
+        {
+            label: 'Queued',
+            data: graph_data.lines.queued,
+            fill: false,
+            borderColor: 'rgb(255, 99, 132)',
+            tension: 0.1,
+        },
+        {
+            label: 'Total',
+            data: graph_data.lines.total,
+            fill: false,
+            borderColor: 'rgb(255, 170, 132)',
+            tension: 0.1,
+        }]
     }
 
-    $('#top_active').text(active);
-    $('#top_done').text(done);
-    $('#top_dead').text(dead);
-    $('#top_total').text(formatToK(total));
-    $('#top_processed').text(formatToK(processed));
-    $('#top_remainig').text(formatToK(remainig));
+    let ctx = document.getElementById(`tasksChart-${offset_name}`);
+
+    new Chart(ctx, {
+        type: 'line',
+        data: chartData
+    })
 }
+
+
+function fillGraphProgressData(offset_name, progress) {
+    let percent = progress || 0;
+    let chartData = {
+        labels: ['Processed', 'Queued'],
+        datasets: [{
+            label: 'Progress',
+            data: [percent, 100 - percent],
+            backgroundColor: [
+            'rgb(255, 99, 132)',
+            'rgb(54, 162, 235)',
+            ],
+            hoverOffset: 4
+        }]
+        };
+
+    let ctx = document.getElementById(`progressPieChart-${offset_name}`);
+
+    new Chart(ctx, {
+        type: 'pie',
+        data: chartData
+    })
+}
+
 
 function fillTopicsAccordion(offsets) {
     const accordion = $('#topics_accordion');
@@ -84,10 +120,10 @@ function fillTopicsAccordion(offsets) {
         let label = LABELS[values.name] || values.name;
         let progress = values.processed_precent.toFixed(2);
         let total = getNumberWithCommas(values.total);
-        let remaining = getNumberWithCommas(values.remaining);
+        let remaining = getNumberWithCommas(values.queued);
         let processed = getNumberWithCommas(values.processed);
-        let load_speed = values.load_speed.toFixed(2);
-        let processing_speed = values.processing_speed.toFixed(2);
+        let load_speed = values.current_load_speed.toFixed(2);
+        let processing_speed = values.current_processing_speed.toFixed(2);
         let status = values.status;
 
         let time_left = values.time_left;
@@ -215,101 +251,24 @@ function fillTopicsAccordion(offsets) {
         </div>`
 
         accordion.append(topicAccordionItem);
+        fillGraphTasksData(offset_name, values.full_tasks_graphs);
+        fillGraphProgressData(offset_name, progress);
     }
-}
-
-function fillGraphsData(offsets) {
-    // Tasks Chart
-    for (const [offset_name, values] of Object.entries(offsets)) {
-        let chartData = {
-            labels: values.requested,
-            datasets: [{
-                label: 'Processed',
-                data: values.processed,
-                fill: false,
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1
-            },
-            {
-                label: 'Queued',
-                data: values.queued,
-                fill: false,
-                borderColor: 'rgb(255, 99, 132)',
-                tension: 0.1,
-            },
-            {
-                label: 'Total',
-                data: values.total,
-                fill: false,
-                borderColor: 'rgb(255, 170, 132)',
-                tension: 0.1,
-            }]
-        }
-
-        let ctx = document.getElementById(`tasksChart-${offset_name}`);
-
-        new Chart(ctx, {
-            type: 'line',
-            data: chartData
-        })
-    }
-
-    // Progress Pie Chart
-    for (const [offset_name, values] of Object.entries(offsets)) {
-        let percent = values.processed_precent.slice(-1)[0] || 0;
-        let chartData = {
-            labels: ['Processed', 'Queued'],
-            datasets: [{
-              label: 'Progress',
-              data: [percent, 100 - percent],
-              backgroundColor: [
-                'rgb(255, 99, 132)',
-                'rgb(54, 162, 235)',
-              ],
-              hoverOffset: 4
-            }]
-          };
-
-        let ctx = document.getElementById(`progressPieChart-${offset_name}`);
-
-        new Chart(ctx, {
-            type: 'pie',
-            data: chartData
-        })
-    }
-}
-
-
-function requestGraphsData() {
-    $.ajax({
-        type: 'GET',
-        url: 'http://localhost:8000/metrics/graph',
-        success: (offsets) => {
-            fillGraphsData(offsets);
-        },
-        error: (res) => {
-            //
-        },
-        timeout: 60000
-    });
 }
 
 
 function loadData() {
     $.ajax({
         type: 'GET',
-        url: 'http://localhost:8000/metrics/offsets?sec=600',
-        success: (offsets) => {
-            fillTotals(offsets);
-
-            $.when(fillTopicsAccordion(offsets)).then(function(){
-                requestGraphsData();
-            })
+        url: 'http://localhost:8000/metrics/dashboard',
+        success: (dashboard) => {
+            fillTotals(dashboard.totals);
+            fillTopicsAccordion(dashboard.metrics)
         },
         error: (res) => {
             //
         },
-        timeout: 60000
+        timeout: 3000
     });
 }
 

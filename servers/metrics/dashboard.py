@@ -9,6 +9,7 @@ from .schemas import (
     OffsetMetrics,
     TopicStatus,
     LineGraph,
+    Totals,
 )
 
 
@@ -33,7 +34,7 @@ class DashboardMetrics:
     history = None
 
     def __init__(self):
-        self.state = {"metrics": {}}
+        self.state = {"metrics": {}, "totals": {}}
         self.metrics = self.state["metrics"]
         self.history = {}
 
@@ -43,12 +44,8 @@ class DashboardMetrics:
         )
 
         for name in active_topics_names:
-            offsets = self._init_topic_metrics(name)
-
-            if offsets is None:
-                print(name, "TODO: handle the error")
-            else:
-                self.metrics[name] = offsets
+            self._init_topic_metrics(name)
+        self._init_totals()
 
     def _get_general_topic_info(self, offset):
         (
@@ -151,10 +148,26 @@ class DashboardMetrics:
         self.history[name] = ThinnedSequence(full_history, to=40)
         tasks_grap_data = self._get_tasks_graps(name)
 
-        return OffsetMetrics(
+        self.metrics[name] = OffsetMetrics(
             name=name, **info, status=status,
             full_tasks_graphs=tasks_grap_data,
         )
+
+    def _init_totals(self):
+        totals = Totals()
+
+        for data in self.metrics.values():
+            totals.total += data.total
+            totals.processed += data.processed
+            totals.queued += data.queued
+
+            if data.status == TopicStatus.ACTIVE:
+                totals.active += 1
+            elif data.status == TopicStatus.DONE:
+                totals.done += 1
+            elif data.status == TopicStatus.DEAD:
+                totals.dead += 1
+        self.state["totals"] = totals
 
     def get_state(self):
         return self.state

@@ -11,8 +11,8 @@ metrics_client = MetricsClient("localhost", 6000)
 logger = logging.getLogger(__name__)
 
 
-@router.get("/offsets", response_model=OffsetsMetrics)
-async def get_offests(sec: int = 60 * 10):
+@router.get("/dashboard", response_model=OffsetsMetrics)
+async def get_offests():
     try:
         return metrics_client.get_dashboard_data()
     except Exception as e:

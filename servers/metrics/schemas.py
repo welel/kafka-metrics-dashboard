@@ -49,5 +49,15 @@ class OffsetMetrics(BaseModel):
     # full_speeds_graphs: LineGraph | None
 
 
+class Totals(BaseModel):
+    total: int = 0
+    processed: int = 0
+    queued: int = 0
+    active: int = 0
+    dead: int = 0
+    done: int = 0
+
+
 class OffsetsMetrics(BaseModel):
     metrics: dict[str, OffsetMetrics]
+    totals: Totals
