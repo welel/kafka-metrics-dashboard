@@ -123,7 +123,7 @@ function fillGraphProgressData(offset_name, progress) {
 }
 
 
-function fillTopicsAccordion(offsets) {
+function createTopicsAccordion(offsets) {
     const accordion = $('#topics_accordion');
 
     for (const [offset_name, values] of Object.entries(offsets)) {
@@ -141,7 +141,7 @@ function fillTopicsAccordion(offsets) {
         let started = formatDateToYYYYMMDDHHMM(new Date(values.started));
 
         let finishes;
-        if (typeof values.finishes == "inf") {
+        if (values.finishes == "inf") {
             finishes = '\u221E';
         } else {
             finishes = formatDateToYYYYMMDDHHMM(new Date(values.finishes));
@@ -284,7 +284,7 @@ function loadData() {
         url: 'http://localhost:8000/metrics/dashboard',
         success: (dashboard) => {
             fillTotals(dashboard.totals);
-            fillTopicsAccordion(dashboard.metrics)
+            createTopicsAccordion(dashboard.metrics);
         },
         error: (res) => {
             //
@@ -293,6 +293,24 @@ function loadData() {
     });
 }
 
+
+// function refreshData() {
+//     $.ajax({
+//         type: 'GET',
+//         url: 'http://localhost:8000/metrics/dashboard',
+//         success: (dashboard) => {
+//             fillTotals(dashboard.totals);
+//             fillTopicsAccordion(dashboard.metrics);
+//         },
+//         error: (res) => {
+//             //
+//         },
+//         timeout: 3000
+//     });
+// }
+
+
 window.onload = () => {
     loadData();
+    // setInterval(refreshData, 10000);
 };

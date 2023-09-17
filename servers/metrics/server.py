@@ -1,5 +1,6 @@
 import logging
 import socketserver
+import threading
 
 from pydantic import ValidationError
 
@@ -36,6 +37,10 @@ class MetricsSocketServer(socketserver.ThreadingTCPServer):
     def create_dashboard(self):
         """Creates and initialize the dashboard."""
         self.dashboard = DashboardMetrics()
+        threading.Thread(
+            target=self.dashboard.refresh,
+            args=(10,)
+        ).start()
 
 
 class MetricsTCPHandler(socketserver.BaseRequestHandler):

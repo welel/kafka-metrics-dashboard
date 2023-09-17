@@ -6,6 +6,32 @@ from src.db import session_maker
 from src.metrics.models import offset
 
 
+def get_offsets_from_timestamp(name, from_datetime):
+    query = (
+        sa.select(
+            offset.c.processed,
+            offset.c.remaining,
+            offset.c.requested,
+            sa.extract('epoch', offset.c.requested - sa.func.lag(
+                offset.c.requested).over(
+                    order_by=offset.c.requested)).label('gap_sec'),
+            sa.func.lag(offset.c.processed).over(order_by=(
+                offset.c.requested)).label('prev_processed'),
+            sa.func.lag(offset.c.remaining).over(order_by=(
+                offset.c.requested)).label('prev_remaining'),
+        )
+        .where(sa.and_(
+            offset.c.name == name,
+            offset.c.requested >= from_datetime
+        ))
+        .order_by(offset.c.requested.desc())
+    )
+
+    with session_maker() as session:
+        offsets = session.execute(query)
+        return offsets.all()
+
+
 def get_full_history_topic_offsets(
         name,
         appropriate_lag_sec=60 * 60 * 12,
@@ -60,29 +86,7 @@ def get_full_history_topic_offsets(
     else:
         breakpoint = breakpoint[0]
 
-    query = (
-        sa.select(
-            offset.c.processed,
-            offset.c.remaining,
-            offset.c.requested,
-            sa.extract('epoch', offset.c.requested - sa.func.lag(
-                offset.c.requested).over(
-                    order_by=offset.c.requested)).label('gap_sec'),
-            sa.func.lag(offset.c.processed).over(order_by=(
-                offset.c.requested)).label('prev_processed'),
-            sa.func.lag(offset.c.remaining).over(order_by=(
-                offset.c.requested)).label('prev_remaining'),
-        )
-        .where(sa.and_(
-            offset.c.name == name,
-            offset.c.requested >= breakpoint
-        ))
-        .order_by(offset.c.requested.desc())
-    )
-
-    with session_maker() as session:
-        offsets = session.execute(query)
-        return offsets.all()
+    return get_offsets_from_timestamp(name, breakpoint)
 
 
 def get_active_topic_names_for_sec(sec):

@@ -1,10 +1,12 @@
 import math
 import logging
+import time
 from datetime import timedelta
 
 from .helpers import (
     get_active_topic_names_for_sec,
     get_full_history_topic_offsets,
+    get_offsets_from_timestamp,
 )
 from .schemas import (
     OffsetMetrics,
@@ -27,7 +29,14 @@ class ThinnedSequence(list):
         step = math.ceil(len(self) / self.to) or 1
         for i in range(0, len(self), step):
             out.append(self[i])
+
+        if len(out) >= self.to:
+            out.pop(0)
+        out.insert(0, self[0])
         return out
+
+    def add(self, items):
+        self = items + self
 
 
 class DashboardMetrics:
@@ -187,8 +196,38 @@ class DashboardMetrics:
                 totals.dead += 1
         self.state["totals"] = totals
 
+    def _refresh_topic(self, name):
+        metrics = self.state["metrics"][name]
+        new_offsets = get_offsets_from_timestamp(name, metrics.last_requested)
+
+        if len(new_offsets) < 3:
+            return
+
+        new_offsets.pop()
+
+        info = self._get_general_topic_info(new_offsets[0])
+        status = self._get_topic_status(
+            info["total"], info["processed"], new_offsets[1][0]
+        )
+
+        self.history[name].add(new_offsets)
+        tasks_grap_data = self._get_tasks_graps(name)
+
+        self.state["metrics"][name] = OffsetMetrics(
+            name=name,
+            **info,
+            status=status,
+            started=metrics.started,
+            full_tasks_graphs=tasks_grap_data,
+        )
+
     def refresh(self, interval):
-        ...
+        while True:
+            time.sleep(interval)
+            for name in self.state["metrics"].keys():
+                self._refresh_topic(name)
+            self._init_totals()
+            logger.info("Metrics updated.")
 
     def get_state(self):
         status_order = {
