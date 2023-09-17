@@ -17,7 +17,7 @@ function formatToK(number) {
 }
 
 function getNumberWithCommas(number) {
-    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 }
 
 function formatSecondsToTimeLeft(seconds) {
@@ -45,25 +45,28 @@ function formatSecondsToTimeLeft(seconds) {
 
 
 function fillTotals(offsets) {
-    let active = 0;
-    let done = 0;
-    let dead = 0;
-    let total = 0;
-    let processed = 0;
-    let remainig = 0;
+    let active = 0,
+        done = 0,
+        dead = 0,
+        total = 0,
+        processed = 0,
+        remainig = 0;
 
     for (const [offset_name, values] of Object.entries(offsets)) {
         total += values.total;
         processed += values.processed;
         remainig += values.remaining;
 
-        if (values.status === 'active') {
-            active += 1;
-        } else if (values.status === 'done') {
-            done += 1;
-        } else if (values.status === 'dead') {
-            dead += 1;
-        }        
+        switch (values.status) {
+            case 'active':
+                active += 1;
+                break;
+            case 'done':
+                done += 1;
+                break;
+            case 'dead':
+                dead += 1;
+        }  
     }
 
     $('#top_active').text(active);
@@ -75,15 +78,18 @@ function fillTotals(offsets) {
 }
 
 function fillTopicsAccordion(offsets) {
-    var accordion = $('#topics_accordion');
+    const accordion = $('#topics_accordion');
+
     for (const [offset_name, values] of Object.entries(offsets)) {
-        let label = LABELS[values.label] || values.label;
+        let label = LABELS[values.name] || values.name;
         let progress = values.processed_precent.toFixed(2);
         let total = getNumberWithCommas(values.total);
         let remaining = getNumberWithCommas(values.remaining);
         let processed = getNumberWithCommas(values.processed);
         let load_speed = values.load_speed.toFixed(2);
         let processing_speed = values.processing_speed.toFixed(2);
+        let status = values.status;
+
         let time_left = values.time_left;
         if (typeof time_left == 'string') {
             time_left = '\u221E';
@@ -91,67 +97,129 @@ function fillTopicsAccordion(offsets) {
             time_left = formatSecondsToTimeLeft(values.time_left.toFixed(0));
         }
 
-        var topicAccordionItem = `<div class="accordion-item">
-        <h2 class="accordion-header" id="panelsStayOpen-heading${offset_name}">
-          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse${offset_name}" aria-expanded="false" aria-controls="panelsStayOpen-collapse${offset_name}">
-            ${label} | ${progress}%
-          </button>
-        </h2>
-        <div id="panelsStayOpen-collapse${offset_name}" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-heading${offset_name}">
-          <div class="accordion-body">
-              <div class="row row row-cols-1 row-cols-sm-3 row-cols-lg-6 text-white text-center">
-                  <div class="col-2 py-3" style="background-color: #407eff; border-top: 1px solid black; border-left: 1px solid black; border-bottom: 1px solid black;"><b>${total}</b><br>total</div>
-                  <div class="col-2 py-3" style="background-color: #407eff; border-top: 1px solid black; border-left: 1px solid black; border-bottom: 1px solid black;"><b>${processed}</b><br>processed</div>
-                  <div class="col-2 py-3" style="background-color: #407eff; border-top: 1px solid black; border-left: 1px solid black; border-bottom: 1px solid black;"><b>${remaining}</b><br>queued</div>
-                  <div class="col-3 py-3" style="background-color: limegreen; border-top: 1px solid black; border-left: 1px solid black; border-bottom: 1px solid black;"><b>${load_speed}/s</b><br>load speed</div>
-                  <div class="col-3 py-3" style="background-color: limegreen; border: 1px solid black;"><b>${processing_speed}/s</b><br>processing speed</div>
-              </div>
-              <div class="row text-center">
-                  <div class="col-6">
-                      <div class="row">
-                          <div class="col-6 py-3 fs-2"><p style="border: 1px solid blue;">${progress}%<br><span class="fs-6">Processed</span></p></div>
-                          <div class="col-6 py-3 fs-2"><p style="border: 1px solid blue;">${time_left}<br><span class="fs-6">Left</span></p></div>
-                      </div>
-                  </div>
-                  <div class="col-6">
-                      <div class="row">
-                          <div class="col-6 py-3 fs-2"><p style="border: 1px solid blue;">23.09 23:00<br><span class="fs-6">Started</span></p></div>
-                          <div class="col-6 py-3 fs-2"><p style="border: 1px solid blue;">24.05 11:00<br><span class="fs-6">Should end</span></p></div>
-                      </div>
-                  </div>
-                  <div class="row">
-                    <div>
-                        <canvas class="chart-container" id="chart-${offset_name}"></canvas>
+        let status_icon;
+        switch (status) {
+            case 'active':
+                status_icon = '<i class="bi bi-caret-right-square pe-2" style="font-size: 1rem; color:#407eff;"></i>';
+                break;
+            case 'done':
+                status_icon = '<i class="bi bi-check-square pe-2" style="font-size: 1rem; color:lightgreen;"></i>';
+                break;
+            case 'dead':    
+                status_icon = '<i class="bi bi-dash-square pe-2" style="font-size: 1rem; color:tomato;"></i>';
+        }  
+
+        let topicAccordionItem = `
+            <div class="accordion-item">
+            <h2 class="accordion-header" id="panelsStayOpen-heading${offset_name}">
+            <button class="accordion-button accordion-${status}-btn collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapse${offset_name}" aria-expanded="false" aria-controls="panelsStayOpen-collapse${offset_name}">
+                ${status_icon} ${label} | ${progress}%
+            </button>
+            </h2>
+            <div id="panelsStayOpen-collapse${offset_name}" class="accordion-collapse collapse" aria-labelledby="panelsStayOpen-heading${offset_name}">
+            <div class="accordion-body">
+                <div class="row">
+                    <div class="col-12 col-md-4 col-xl-3 topic-top-card">
+                        <div class="py-3">
+                        <div class="row m-0 px-2">
+                            <div class="col-9 fs-2 topic-tasks-number">${total}</div>
+                            <div class="col-3 mt-2"><i class="bi bi-list-nested" style="font-size: 1rem; color:#407eff;"></i></div>
+                        </div>
+                        <div class="row m-0 fs-6 text-secondary ps-3">Total</div>
+                        </div>
                     </div>
-                  </div>
-              </div>
-          </div>
-        </div>
-        </div>`;
+                    <div class="col-12 col-md-4 col-xl-3 topic-top-card">
+                        <div class="py-3">
+                        <div class="row m-0 px-2">
+                            <div class="col-9 fs-2 topic-tasks-number">${processed}</div>
+                            <div class="col-3 mt-2"><i class="bi bi-list-check" style="font-size: 1rem; color:lightgreen;"></i></div>
+                        </div>
+                        <div class="row m-0 fs-6 text-secondary ps-3">Processed</div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4 col-xl-3 topic-top-card">
+                        <div class="py-3">
+                        <div class="row m-0 px-2">
+                            <div class="col-9 fs-2 topic-tasks-number">${remaining}</div>
+                            <div class="col-3 mt-2"><i class="bi bi-list-ul" style="font-size: 1rem; color: gold;"></i></div>
+                        </div>
+                        <div class="row m-0 fs-6 text-secondary ps-3">Queued</div>
+                        </div>
+                    </div>
+    
+                    <div class="col-12 col-xl-3 mt-4 mt-xl-0 topic-top-card">
+                        <dev class="row">
+                        <div class="col-4 col-lg-6 topic-top-card">
+                            <div class="py-3">
+                            <div class="row m-0 px-2">
+                                <div class="col-9 fs-4 fw-bold">${load_speed}<span class="fs-5 text-secondary fw-normal">/s</span></div>
+                            </div>
+                            <div class="row m-0 fs-6 text-secondary ps-3">Load speed</div>
+                            </div>
+                        </div>
+                        <div class="col-4 col-lg-6 topic-top-card">
+                            <div class="py-3">
+                            <div class="row m-0 px-2">
+                                <div class="col-9 fs-4 fw-bold">${processing_speed}<span class="fs-5 text-secondary fw-normal">/s</span></div>
+                            </div>
+                            <div class="row m-0 fs-6 text-secondary ps-3">Proc. speed</div>
+                            </div>
+                        </div>
+    
+                        <div class="col-4 d-block d-lg-none topic-top-card">
+                            <div class="py-3">
+                            <div class="row m-0 px-2">
+                                <div class="col-9 fs-4 fw-bold">${progress}%</div>
+                            </div>
+                            <div class="row m-0 fs-6 text-secondary ps-3">Left ${time_left}</div>
+                            </div>
+                        </div>
+                        </dev>
+                    </div>
+                </div>
+    
+                <div class="row mt-4">
+                    <div class="col-3 d-none d-lg-block">
+                    <div class="row">
+                        <span class="fs-4 fw-500 text-center">Progress</span>
+                    </div>
+                    <div class="row px-4">
+                        <div><canvas class="chart-container" id="progressPieChart-${offset_name}"></canvas></div>
+                    </div>
+                    <div class="row mt-2 text-center">
+                        <span class="fs-6 fw-500">Time left</span>
+                    </div>
+                    <div class="row text-center">
+                        <span class="fs-5">${time_left}</span>
+                    </div>
+                    <hr>
+                    <div class="row text-center">
+                        <div class="col-6"><span class="fw-500">Started</span><br>dd.mm HH:MM</div>
+                        <div class="col-6"><span class="fw-500">Finishes</span><br>dd.mm HH:MM</div>
+                    </div>
+                    </div>
+                    <div class="col-12 col-lg-9">
+                        <style>
+                            /* Set the maximum height for the container */
+                            .chart-container {
+                                max-height: 400px; /* Adjust this value as needed */
+                                overflow-y: auto; /* Enable vertical scrolling if needed */
+                            }
+                        </style>
+                        <div><canvas class="chart-container" id="tasksChart-${offset_name}"></canvas></div>
+                    </div>
+                </div>
+                </div>
+            </div>
+            </div>
+        </div>`
 
         accordion.append(topicAccordionItem);
     }
 }
 
-// var chartData = {
-//     labels: ['January', 'February', 'March', 'April', 'May', 'June', 'July'],
-//     datasets: [{
-//         label: 'My First Dataset',
-//         data: [0, 200, 1000, 25000, 15000, 5000, 40],
-//         fill: false,
-//         borderColor: 'rgb(75, 192, 192)',
-//         tension: 0.1
-//     },
-//     {
-//         label: 'My Second Dataset', // Label for the second line
-//         data: [30, 1000, 6000, 70000, 50000, 400, 30], // Data for the second line
-//         fill: false,
-//         borderColor: 'rgb(255, 99, 132)', // Color for the second line
-//         tension: 0.1,
-//     }]
-// }
-
 function fillGraphsData(offsets) {
+    // Tasks Chart
     for (const [offset_name, values] of Object.entries(offsets)) {
         let chartData = {
             labels: values.requested,
@@ -178,10 +246,34 @@ function fillGraphsData(offsets) {
             }]
         }
 
-        let ctx = document.getElementById(`chart-${offset_name}`);
+        let ctx = document.getElementById(`tasksChart-${offset_name}`);
 
         new Chart(ctx, {
             type: 'line',
+            data: chartData
+        })
+    }
+
+    // Progress Pie Chart
+    for (const [offset_name, values] of Object.entries(offsets)) {
+        let percent = values.processed_precent.slice(-1)[0] || 0;
+        let chartData = {
+            labels: ['Processed', 'Queued'],
+            datasets: [{
+              label: 'Progress',
+              data: [percent, 100 - percent],
+              backgroundColor: [
+                'rgb(255, 99, 132)',
+                'rgb(54, 162, 235)',
+              ],
+              hoverOffset: 4
+            }]
+          };
+
+        let ctx = document.getElementById(`progressPieChart-${offset_name}`);
+
+        new Chart(ctx, {
+            type: 'pie',
             data: chartData
         })
     }
@@ -198,7 +290,7 @@ function requestGraphsData() {
         error: (res) => {
             //
         },
-        timeout: 3000
+        timeout: 60000
     });
 }
 
@@ -206,11 +298,9 @@ function requestGraphsData() {
 function loadData() {
     $.ajax({
         type: 'GET',
-        url: 'http://localhost:8000/metrics/offsets?sec=60000',
+        url: 'http://localhost:8000/metrics/offsets?sec=600',
         success: (offsets) => {
             fillTotals(offsets);
-            // fillTopicsAccordion(offsets);
-            // requestGraphsData();
 
             $.when(fillTopicsAccordion(offsets)).then(function(){
                 requestGraphsData();
@@ -219,7 +309,7 @@ function loadData() {
         error: (res) => {
             //
         },
-        timeout: 3000
+        timeout: 60000
     });
 }
 

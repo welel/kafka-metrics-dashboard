@@ -1,49 +1,96 @@
 {% extends 'base.html' %}
 
+
 {% block extra_head %}
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.min.js" integrity="sha512-7U4rRB8aGAHGVad3u2jiC7GA5/1YhQcQjxKeaVms/bT66i3LVBMRcBI9KwABNWnxOSwulkuSXxZLGuyfvo7V1A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.js" integrity="sha512-6LKCH7i2+zMNczKuCT9ciXgFCKFp3MevWTZUXDlk7azIYZ2wF5LRsrwZqO7Flt00enUI+HwzzT5uhOvy6MNPiA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js" integrity="sha512-6HrPqAvK+lZElIZ4mZ64fyxIBTsaX5zAFZg2V/2WT+iKPrFzTzvx6QAsLW2OaLwobhMYBog/+bvmIEEGXi0p1w==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js" integrity="sha512-SIMGYRUjwY8+gKg7nn9EItdD8LCADSDfJNutF9TPrvEo86sQmFMh6MyralfIyhADlajSxqc7G0gs7+MwWF/ogQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/helpers.js" integrity="sha512-mP+Y3bimvz/biDjFiXeGMPnLCKXV+VuYXv86wAZ+llI6Gq0Ip3xjo6hx2AueB59sjk/bF66Y2K2vcvSLf/b+LQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
-  <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/helpers.min.js" integrity="sha512-JG3S/EICkp8Lx9YhtIpzAVJ55WGnxT3T6bfiXYbjPRUoN9yu+ZM+wVLDsI/L2BWRiKjw/67d+/APw/CDn+Lm0Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script> -->
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
+
 
 {% block main %}
-<style>
-    /* Set the maximum height for the container */
-    .chart-container {
-        max-height: 200px; /* Adjust this value as needed */
-        overflow-y: auto; /* Enable vertical scrolling if needed */
-    }
-</style>
+<!-- Headline Text -->
+<class class="row fw-500 fs-2 mt-3">
+  <span class="ml-3">Metrics Overview</span>
+</class>
 
-<div class="container">
-<nav class="navbar navbar-light bg-light">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="#">
-        <img src="{{ url_for('static', path='favicon-32x32.png') }}" alt="" width="30" height="30" class="d-inline-block align-text-top">
-        Parser Dashboard
-        </a>
-    </div>
-</nav>
+<!-- Top Metric Cards-->
+<div class="row mt-3 row-cols-1 row-cols-md-3">
+    <div class="top-card col mb-4"><div class="px-4">
+      <class class="row d-flex justify-content-center pt-3 text-center">
+        <i class="bi bi-caret-right-square" style="font-size: 1.5rem; color:#407eff;"></i>
+      </class>
+      <class class="row d-flex justify-content-center">
+        <span class="top-card-number text-center" id="top_active">?</span>
+      </class>
+      <class class="row pb-4 d-flex justify-content-center text-secondary">
+        <span class="top-card-description text-center">Active</span>
+      </class>
+    </div></div>
+    <div class="top-card col mb-4"><div class="px-4">
+      <class class="row d-flex justify-content-center pt-3 text-center">
+        <i class="bi bi-check-square" style="font-size: 1.5rem; color:lightgreen;"></i>
+      </class>
+      <class class="row d-flex justify-content-center">
+        <span class="top-card-number text-center" id="top_done">?</span>
+      </class>
+      <class class="row pb-4 d-flex justify-content-center text-secondary">
+        <span class="top-card-description text-center">Done</span>
+      </class>
+    </div></div>
+    <div class="top-card col mb-4"><div class="px-4">
+      <class class="row d-flex justify-content-center pt-3 text-center">
+        <i class="bi bi-dash-square" style="font-size: 1.5rem; color:tomato;"></i>
+      </class>
+      <class class="row d-flex justify-content-center">
+        <span class="top-card-number text-center" id="top_dead">?</span>
+      </class>
+      <class class="row pb-4 d-flex justify-content-center text-secondary">
+        <span class="top-card-description text-center">Dead</span>
+      </class>
+    </div></div>
 
-<div class="row row-cols-1 row-cols-lg-3 row-cols-sm-2 text-center">
-    <div class="col"><p class="px-5 py-2 fs-1" style="border: 1px solid blue;"><span class="fs-6">Active</span><br><span id="top_active">?</span></p></div>
-    <div class="col"><p class="px-5 py-2 fs-1" style="border: 1px solid blue;"><span class="fs-6">Finished</span><br><span id="top_done">?</span></p></div>
-    <div class="col"><p class="px-5 py-2 fs-1" style="border: 1px solid blue;"><span class="fs-6">Dead</span><br><span id="top_dead">?</span></p></div>
-    <div class="col"><p class="px-5 py-2 fs-1" style="border: 1px solid blue;"><span class="fs-6">Total messages</span><br><span id="top_total">?</span></p></div>
-    <div class="col"><p class="px-5 py-2 fs-1" style="border: 1px solid blue;"><span class="fs-6">Total remaining</span><br><span id="top_remainig">?</span></p></div>
-    <div class="col"><p class="px-5 py-2 fs-1" style="border: 1px solid blue;"><span class="fs-6">Total processed</span><br><span id="top_processed">?</span></p></div>
+    <div class="top-card col mb-4"><div class="px-4">
+      <class class="row d-flex justify-content-center pt-3 text-center">
+        <i class="bi bi-list-nested" style="font-size: 1.5rem; color:#407eff;"></i>
+      </class>
+      <class class="row d-flex justify-content-center">
+        <span class="top-card-number text-center" id="top_total">?</span>
+      </class>
+      <class class="row pb-4 d-flex justify-content-center text-secondary">
+        <span class="top-card-description text-center">Total tasks</span>
+      </class>
+    </div></div>
+    <div class="top-card col mb-4"><div class="px-4">
+      <class class="row d-flex justify-content-center pt-3 text-center">
+        <i class="bi bi-list-check" style="font-size: 1.5rem; color:lightgreen;"></i>
+      </class>
+      <class class="row d-flex justify-content-center">
+        <span class="top-card-number text-center" id="top_processed">?</span>
+      </class>
+      <class class="row pb-4 d-flex justify-content-center text-secondary">
+        <span class="top-card-description text-center">Processed tasks</span>
+      </class>
+    </div></div>
+    <div class="top-card col mb-4"><div class="px-4">
+      <class class="row d-flex justify-content-center pt-3 text-center">
+        <i class="bi bi-list-ul" style="font-size: 1.5rem; color: gold;"></i>
+      </class>
+      <class class="row d-flex justify-content-center">
+        <span class="top-card-number text-center" id="top_remainig">?</span>
+      </class>
+      <class class="row pb-4 d-flex justify-content-center text-secondary">
+        <span class="top-card-description text-center">Queued tasks</span>
+      </class>
+    </div></div>
 </div>
 
-<div class="accordion" id="topics_accordion">
-    <!-- Content from JS -->
+<!-- Topics Accordion -->
+<div class="accordion mt-4" id="topics_accordion">
+  <!-- Content forms JS dashboard -->
 </div>
 </div>
 {% endblock %}
+
 
 {% block extra_body %}
 <!-- Local -->

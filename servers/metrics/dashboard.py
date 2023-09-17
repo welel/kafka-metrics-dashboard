@@ -49,7 +49,6 @@ class DashboardMetrics:
                 print(name, "TODO: handle the error")
             else:
                 self.metrics[name] = offsets
-                return
 
     def _get_general_topic_info(self, offset):
         (
