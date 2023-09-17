@@ -90,12 +90,14 @@ class DashboardMetrics:
                 else:
                     time_left = "inf"
             else:
-                time_left = round(remaining / actual_processing_speed, 2)
+                time_left = float(
+                    round(remaining / actual_processing_speed, 2)
+                )
 
-        if isinstance(time_left, int):
-            finishes = requested + timedelta(seconds=time_left)
+        if time_left == "inf":
+            finishes = "inf"
         else:
-            finishes = time_left
+            finishes = requested + timedelta(seconds=time_left)
 
         return {
             "total": total,
@@ -157,7 +159,7 @@ class DashboardMetrics:
         tasks_grap_data = self._get_tasks_graps(name)
 
         if len(full_history) > 2:
-            started = full_history[-2][3]
+            started = full_history[-2][2]
         else:
             started = info["last_requested"]
 
@@ -185,5 +187,15 @@ class DashboardMetrics:
                 totals.dead += 1
         self.state["totals"] = totals
 
+    def refresh(self, interval):
+        ...
+
     def get_state(self):
+        status_order = {
+            TopicStatus.ACTIVE: 1, TopicStatus.DEAD: 2, TopicStatus.DONE: 3
+        }
+        self.state["metrics"] = dict(sorted(
+            self.state["metrics"].items(),
+            key=lambda x: (status_order[x[1].status], x[1].name),
+        ))
         return self.state

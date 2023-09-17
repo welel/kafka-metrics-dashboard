@@ -1,8 +1,8 @@
 LABELS = {
     'db_service': 'DB Service',
-    'tokopedia_1': 'Tokopedia Category Pages (tokopedia_1)',
-    'tokopedia_2': 'Tokopedia Products (tokopedia_2)',
-    'tokopedia_3': 'Tokopedia Sellers (tokopedia_3)',
+    'tokopedia_1': 'Tokopedia Category Pages',
+    'tokopedia_2': 'Tokopedia Products',
+    'tokopedia_3': 'Tokopedia Sellers',
 }
 
 
@@ -128,6 +128,9 @@ function fillTopicsAccordion(offsets) {
 
     for (const [offset_name, values] of Object.entries(offsets)) {
         let label = LABELS[values.name] || values.name;
+        if (label != values.name) {
+            label += ` (${values.name})`;
+        }
         let progress = values.processed_precent.toFixed(2);
         let total = getNumberWithCommas(values.total);
         let remaining = getNumberWithCommas(values.queued);
@@ -138,7 +141,7 @@ function fillTopicsAccordion(offsets) {
         let started = formatDateToYYYYMMDDHHMM(new Date(values.started));
 
         let finishes;
-        if (typeof values.finishes == 'string') {
+        if (typeof values.finishes == "inf") {
             finishes = '\u221E';
         } else {
             finishes = formatDateToYYYYMMDDHHMM(new Date(values.finishes));
