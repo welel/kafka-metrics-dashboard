@@ -1,5 +1,6 @@
 import math
 import logging
+from datetime import timedelta
 
 from .helpers import (
     get_active_topic_names_for_sec,
@@ -90,6 +91,12 @@ class DashboardMetrics:
                     time_left = "inf"
             else:
                 time_left = round(remaining / actual_processing_speed, 2)
+
+        if isinstance(time_left, int):
+            finishes = requested + timedelta(seconds=time_left)
+        else:
+            finishes = time_left
+
         return {
             "total": total,
             "processed": processed,
@@ -99,6 +106,7 @@ class DashboardMetrics:
             "current_processing_speed": current_processing_speed,
             "last_requested": requested,
             "time_left": time_left,
+            "finishes": finishes,
         }
 
     def _get_topic_status(self, total, processed, prev_processed):
@@ -148,8 +156,16 @@ class DashboardMetrics:
         self.history[name] = ThinnedSequence(full_history, to=40)
         tasks_grap_data = self._get_tasks_graps(name)
 
+        if len(full_history) > 2:
+            started = full_history[-2][3]
+        else:
+            started = info["last_requested"]
+
         self.metrics[name] = OffsetMetrics(
-            name=name, **info, status=status,
+            name=name,
+            **info,
+            status=status,
+            started=started,
             full_tasks_graphs=tasks_grap_data,
         )
 

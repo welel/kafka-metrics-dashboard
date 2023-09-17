@@ -44,6 +44,16 @@ function formatSecondsToTimeLeft(seconds) {
 }
 
 
+function formatDateToYYYYMMDDHHMM(date) {
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+  
+    return `${month}.${day} ${hours}:${minutes}`;
+}
+
+
 function fillTotals(totals) {
     $('#top_active').text(totals.active);
     $('#top_done').text(totals.done);
@@ -125,6 +135,14 @@ function fillTopicsAccordion(offsets) {
         let load_speed = values.current_load_speed.toFixed(2);
         let processing_speed = values.current_processing_speed.toFixed(2);
         let status = values.status;
+        let started = formatDateToYYYYMMDDHHMM(new Date(values.started));
+
+        let finishes;
+        if (typeof values.finishes == 'string') {
+            finishes = '\u221E';
+        } else {
+            finishes = formatDateToYYYYMMDDHHMM(new Date(values.finishes));
+        }
 
         let time_left = values.time_left;
         if (typeof time_left == 'string') {
@@ -230,8 +248,8 @@ function fillTopicsAccordion(offsets) {
                     </div>
                     <hr>
                     <div class="row text-center">
-                        <div class="col-6"><span class="fw-500">Started</span><br>dd.mm HH:MM</div>
-                        <div class="col-6"><span class="fw-500">Finishes</span><br>dd.mm HH:MM</div>
+                        <div class="col-6"><span class="fw-500">Started</span><br>${started}</div>
+                        <div class="col-6"><span class="fw-500">Finishes</span><br>${finishes}</div>
                     </div>
                     </div>
                     <div class="col-12 col-lg-9">
