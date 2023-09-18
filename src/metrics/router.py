@@ -5,9 +5,11 @@ from fastapi import APIRouter
 from servers.metrics.client import MetricsClient
 from servers.metrics.schemas import OffsetsMetrics
 
+from settings import METRICS_SERVER_HOST, METRICS_SERVER_PORT
+
 
 router = APIRouter(prefix="/metrics", tags=["Metrics"])
-metrics_client = MetricsClient("localhost", 6000)
+metrics_client = MetricsClient(METRICS_SERVER_HOST, METRICS_SERVER_PORT)
 logger = logging.getLogger(__name__)
 
 

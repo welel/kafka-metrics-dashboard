@@ -58,4 +58,4 @@ TEMPLATES_PATH = os.path.join(BASE_DIR, "templates")
 
 # Metrics Server
 METRICS_SERVER_HOST = _config.get("metrics_server", "host")
-METRICS_SERVER_PORT = _config.get("metrics_server", "port")
+METRICS_SERVER_PORT = _config.getint("metrics_server", "port")
