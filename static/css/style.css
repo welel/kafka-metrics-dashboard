@@ -43,16 +43,16 @@ body {
     color: black !important;
     font-weight: 600;
 }
-.accordion-done-btn:not(.collapsed) {
+.accordion-button.done:not(.collapsed) {
     background-color: #56ff5c52 !important;
 }
-.accordion-done-btn:focus {
+.accordion-button.done:focus {
     box-shadow: 0 0 0 0.25rem rgba(150, 255, 124, 0.25) !important;
 }
-.accordion-dead-btn:not(.collapsed) {
+.accordion-button.dead:not(.collapsed) {
     background-color: #ff634752 !important;
 }
-.accordion-dead-btn:focus {
+.accordion-button.dead:focus {
     box-shadow: 0 0 0 0.25rem rgb(255 124 124 / 25%) !important;
 }
 .topic-tasks-number {
