@@ -46,6 +46,7 @@ def get_full_history_topic_offsets(
         limit_requested_sec (int): Filter offsets by the `requested` field,
             selects all from now minus `limit_requested_sec`.
     """
+    datetime_from_now = datetime.now() - timedelta(seconds=limit_requested_sec)
     breakpoints_data_cte = (
         sa.select(
             (offset.c.processed + offset.c.remaining - sa.func.lag(
@@ -59,8 +60,7 @@ def get_full_history_topic_offsets(
         )
         .where(sa.and_(
             offset.c.name == name,
-            offset.c.requested >= datetime.now() - timedelta(
-                seconds=limit_requested_sec)
+            offset.c.requested >= datetime_from_now
         ))
         .order_by(offset.c.requested.desc())
         .cte('BreakPointsData')
@@ -80,11 +80,10 @@ def get_full_history_topic_offsets(
         breakpoint = session.execute(requested_breakpoint_query)
 
     breakpoint = breakpoint.first()
-    if breakpoint is None:
-        print(name, "skipped")
-        return
-    else:
+    if breakpoint:
         breakpoint = breakpoint[0]
+    else:
+        breakpoint = datetime_from_now
 
     return get_offsets_from_timestamp(name, breakpoint)
 

@@ -7,7 +7,7 @@ metadata = sa.MetaData()
 
 
 offset = sa.Table(
-    "offset",
+    "collector_offset",
     metadata,
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("name", sa.String(64), nullable=False),
@@ -19,7 +19,7 @@ offset = sa.Table(
 )
 
 proxy = sa.Table(
-    "proxy",
+    "collector_proxy",
     metadata,
     sa.Column("id", sa.Integer, primary_key=True),
     sa.Column("name", sa.String(64), nullable=False),
