@@ -46,7 +46,6 @@ class DashboardMetrics:
 
     def __init__(self):
         self.state = {"metrics": {}, "totals": {}}
-        self.metrics = self.state["metrics"]
         self.history = {}
 
         # Get topic names that was collected within last 2 days.
@@ -173,7 +172,7 @@ class DashboardMetrics:
         else:
             started = info["last_requested"]
 
-        self.metrics[name] = OffsetMetrics(
+        self.state["metrics"][name] = OffsetMetrics(
             name=name,
             **info,
             status=status,
@@ -184,7 +183,7 @@ class DashboardMetrics:
     def _init_totals(self):
         totals = Totals()
 
-        for data in self.metrics.values():
+        for data in self.state["metrics"].values():
             totals.total += data.total
             totals.processed += data.processed
             totals.queued += data.queued
