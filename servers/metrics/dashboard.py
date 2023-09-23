@@ -4,6 +4,7 @@ import time
 from datetime import timedelta
 
 from .helpers import (
+    floor_float,
     get_active_topic_names_for_sec,
     get_full_history_topic_offsets,
     get_offsets_from_timestamp,
@@ -72,7 +73,7 @@ class DashboardMetrics:
         if total == 0:
             processed_percent = 100
         else:
-            processed_percent = round(processed / total * 100, 2)
+            processed_percent = floor_float(processed / total * 100, 2)
 
         if gap_sec is None or prev_total is None:
             current_load_speed = None

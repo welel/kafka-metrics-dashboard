@@ -1,3 +1,4 @@
+import math
 from datetime import datetime, timedelta
 
 import sqlalchemy as sa
@@ -95,3 +96,10 @@ def get_active_topic_names_for_sec(sec):
     with session_maker() as session:
         offsets = session.execute(query)
         return [name[0] for name in offsets.all()]
+
+
+def floor_float(number: float, position: int) -> float:
+    if position < 0:
+        return number
+    div = (10 ** position) or 1
+    return math.floor(number * div) / div
