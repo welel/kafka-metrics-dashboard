@@ -20,7 +20,7 @@ from .schemas import (
 logger = logging.getLogger(__name__)
 
 
-class ThinnedSequence(list):
+class ThinnedHistory(list):
     def __init__(self, seq, to=100):
         self.to = to
         self.extend(seq)
@@ -33,11 +33,10 @@ class ThinnedSequence(list):
 
         if len(out) >= self.to:
             out.pop(0)
-        out.insert(0, self[0])
-        return out
 
-    def add(self, items):
-        self = items + self
+        if out[0] != self[0]:
+            out.insert(0, self[0])
+        return out
 
 
 class DashboardMetrics:
@@ -131,9 +130,9 @@ class DashboardMetrics:
             return TopicStatus.ACTIVE
 
     def _get_tasks_graps(self, name):
-        history = self.history.get(
-            name, LineGraph(labels=[], lines={})
-        ).get_seq()
+        history = self.history.get(name, [])
+        if history:
+            history = history.get_seq()
 
         labels = []
         graph_lines = {
@@ -164,7 +163,7 @@ class DashboardMetrics:
         else:
             status = TopicStatus.ACTIVE
 
-        self.history[name] = ThinnedSequence(full_history, to=40)
+        self.history[name] = ThinnedHistory(full_history, to=40)
         tasks_grap_data = self._get_tasks_graps(name)
 
         if len(full_history) > 2:
@@ -200,17 +199,17 @@ class DashboardMetrics:
         metrics = self.state["metrics"][name]
         new_offsets = get_offsets_from_timestamp(name, metrics.last_requested)
 
-        if len(new_offsets) < 3:
+        if len(new_offsets) < 3:  # Not enough data for further processing.
             return
 
-        new_offsets.pop()
+        new_offsets.pop()  # Last row can have NULLs.
 
         info = self._get_general_topic_info(new_offsets[0])
         status = self._get_topic_status(
             info["total"], info["processed"], new_offsets[1][0]
         )
 
-        self.history[name].add(new_offsets)
+        self.history[name].extend(new_offsets)
         tasks_grap_data = self._get_tasks_graps(name)
 
         self.state["metrics"][name] = OffsetMetrics(

@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 @router.get("/dashboard", response_model=OffsetsMetrics)
 async def get_offests():
     try:
-        return metrics_client.get_dashboard_data()
+        data = metrics_client.get_dashboard_data()
+        if data is None:
+            raise ValueError("Invalid respose from the metrics server.")
+        return data
     except Exception as e:
         logger.error("Server Error: %s", e, exc_info=True)
