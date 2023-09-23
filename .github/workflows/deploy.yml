@@ -21,8 +21,8 @@ jobs:
           private_key: ${{secrets.SERVER_SSH_PK}}
           command: |
             cd ${{secrets.PROJECT_DIR}};
-            git checkout main;
-            git pull;
+            git fetch --all;
+            git reset --hard origin/main;
             docker-compose -f docker-compose.yml down --remove-orphans;
             docker-compose -f docker-compose.yml bulid --no-cache;
             docker-compose -f docker-compose.yml up -d;
