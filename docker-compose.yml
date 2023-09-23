@@ -13,6 +13,8 @@ services:
     ports:
       - "8000:80"
     command: ["uvicorn", "src:app", "--host", "0.0.0.0", "--port", "80"]
+    networks:
+      - sellmatica-bot_default
 
   metrics_server:
     container_name: metrics-server
@@ -22,3 +24,9 @@ services:
     command: ["python", "manage.py", "metrics-server", "--host", "metrics_server", "--port", "6000"]
     depends_on:
       - metrics_app
+    networks:
+      - sellmatica-bot_default
+
+networks:
+  sellmatica-bot_default:
+    external: true

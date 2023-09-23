@@ -1,3 +1,5 @@
+const API_URL = api_base_url || 'http://localhost:8000';
+
 LABELS = {
     'db_service': 'DB Service',
     'tokopedia_1': 'Tokopedia Category Pages',
@@ -365,7 +367,7 @@ function fillTopicsAccordion(metrics) {
 function loadData() {
     $.ajax({
         type: 'GET',
-        url: 'http://localhost:8000/metrics/dashboard',
+        url: `${API_URL}/metrics/dashboard`,
         success: (dashboard) => {
             fillTotals(dashboard.totals);
             createTopicsAccordion(dashboard.metrics);
@@ -381,7 +383,7 @@ function loadData() {
 function refreshData() {
     $.ajax({
         type: 'GET',
-        url: 'http://localhost:8000/metrics/dashboard',
+        url: `${API_URL}/metrics/dashboard`,
         success: (dashboard) => {
             fillTotals(dashboard.totals);
             fillTopicsAccordion(dashboard.metrics);
