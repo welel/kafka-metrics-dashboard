@@ -39,6 +39,8 @@ else:
     )
     sys.exit(1)
 
+TIMEZONE = os.getenv("TZ", "Europe/Moscow")
+
 # Database
 DB_USER = os.getenv("POSTGRES_USER")
 DB_NAME = os.getenv("POSTGRES_DB")
@@ -59,5 +61,11 @@ TEMPLATES_PATH = os.path.join(BASE_DIR, "templates")
 # Metrics Server
 METRICS_SERVER_HOST = _config.get("metrics_server", "host")
 METRICS_SERVER_PORT = _config.getint("metrics_server", "port")
+METRICS_SERVER_REFRESH_METRICS_SEC = _config.getint(
+    "metrics_server", "refresh_metrics_sec", fallback=10
+)
+METRICS_SERVER_TOTAL_GRAPH_POINTS = _config.getint(
+    "metrics_server", "total_graph_points", fallback=40
+)
 
 API_BASE_URL = os.getenv("API_BASE_URL")

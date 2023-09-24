@@ -3,6 +3,10 @@ import logging
 import time
 from datetime import timedelta
 
+from settings import (
+    METRICS_SERVER_TOTAL_GRAPH_POINTS as TOTAL_GRAPH_POINTS,
+)
+
 from .helpers import (
     floor_float,
     get_active_topic_names_for_sec,
@@ -21,11 +25,23 @@ logger = logging.getLogger(__name__)
 
 
 class ThinnedHistory(list):
-    def __init__(self, seq, to=100):
-        self.to = to
+    """The list class that has methods for thinning down a sequence.
+
+    Attributes:
+        target_len (int): The target length to which the sequence should be
+            thinned.
+
+    """
+    def __init__(self, seq: list, target_len: int = 100):
+        self.to = target_len
         self.extend(seq)
 
-    def get_seq(self):
+    def get_seq(self) -> list:
+        """Retrieves the thinned sequence based on the specified target length.
+
+        Returns:
+            list: A thinned version of the original sequence.
+        """
         out = []
         step = math.ceil(len(self) / self.to) or 1
         for i in range(0, len(self), step):
@@ -139,7 +155,7 @@ class DashboardMetrics:
             "total": [], "processed": [], "queued": []
         }
 
-        for offset in reversed(history):
+        for offset in history:
             processed, remaining, requested = offset[:3]
 
             labels.append(requested.strftime("%m.%d %H:%M"))
@@ -163,7 +179,9 @@ class DashboardMetrics:
         else:
             status = TopicStatus.ACTIVE
 
-        self.history[name] = ThinnedHistory(full_history, to=40)
+        self.history[name] = ThinnedHistory(
+            reversed(full_history), target_len=TOTAL_GRAPH_POINTS
+        )
         tasks_grap_data = self._get_tasks_graps(name)
 
         if len(full_history) > 2:
@@ -209,7 +227,7 @@ class DashboardMetrics:
             info["total"], info["processed"], new_offsets[1][0]
         )
 
-        self.history[name].extend(new_offsets)
+        self.history[name].extend(reversed(new_offsets))
         tasks_grap_data = self._get_tasks_graps(name)
 
         self.state["metrics"][name] = OffsetMetrics(

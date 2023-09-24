@@ -14,7 +14,8 @@ offset = sa.Table(
     sa.Column("processed", sa.Integer, nullable=False),
     sa.Column("remaining", sa.Integer, nullable=False),
     sa.Column(
-        "requested", sa.TIMESTAMP, nullable=False, default=datetime.utcnow
+        "requested", sa.TIMESTAMP(timezone=True),
+        nullable=False, default=datetime.utcnow
     ),
 )
 
@@ -28,6 +29,7 @@ proxy = sa.Table(
     sa.Column("content_len", sa.Integer, nullable=False),
     sa.Column("messages", sa.Integer, nullable=False),
     sa.Column(
-        "requested", sa.TIMESTAMP, nullable=False, default=datetime.utcnow
+        "requested", sa.TIMESTAMP(timezone=True),
+        nullable=False, default=datetime.utcnow
     ),
 )

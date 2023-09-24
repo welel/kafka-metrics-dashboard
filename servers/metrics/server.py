@@ -4,6 +4,8 @@ import threading
 
 from pydantic import ValidationError
 
+from settings import METRICS_SERVER_REFRESH_METRICS_SEC
+
 from .constants import ControlCommands
 from .dashboard import DashboardMetrics
 from .schemas import OffsetsMetrics, Response, ResponseStatus, Request
@@ -39,7 +41,7 @@ class MetricsSocketServer(socketserver.ThreadingTCPServer):
         self.dashboard = DashboardMetrics()
         threading.Thread(
             target=self.dashboard.refresh,
-            args=(10,)
+            args=(METRICS_SERVER_REFRESH_METRICS_SEC,)
         ).start()
 
 
