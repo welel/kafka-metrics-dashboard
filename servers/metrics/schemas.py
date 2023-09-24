@@ -48,6 +48,7 @@ class OffsetMetrics(BaseModel):
     started: datetime
     finishes: datetime | str
     full_tasks_graphs: LineGraph | None
+    full_speeds_graphs: LineGraph | None
 
 
 class Totals(BaseModel):

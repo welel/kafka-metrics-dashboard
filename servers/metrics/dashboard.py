@@ -56,6 +56,18 @@ class ThinnedHistory(list):
 
 
 class DashboardMetrics:
+    """Class for collecting and managing dashboard metrics data.
+
+    This class is responsible for collecting and managing metrics data for
+    various Kafka topics in a dashboard. It provides methods for initializing,
+    refreshing, and retrieving the metrics data.
+
+    Attributes:
+        state (dict | None): A dict containing metrics and totals data.
+        history (dict | None): A dict containing historical data for each
+            topic.
+
+    """
     state = None
     history = None
 
@@ -89,17 +101,9 @@ class DashboardMetrics:
         else:
             processed_percent = floor_float(processed / total * 100, 2)
 
-        if gap_sec is None or prev_total is None:
-            current_load_speed = None
-            current_processing_speed = None
-        if gap_sec == 0:
-            current_load_speed = total - prev_total
-            current_processing_speed = processed - prev_processed
-        else:
-            current_load_speed = round((total - prev_total) / gap_sec, 2)
-            current_processing_speed = round(
-                (processed - prev_processed) / gap_sec, 2
-            )
+        current_load_speed, current_processing_speed = self._get_speeds(
+                total, processed, prev_total, prev_processed, gap_sec
+        )
 
         if (
                 current_load_speed is not None
@@ -145,6 +149,39 @@ class DashboardMetrics:
         else:
             return TopicStatus.ACTIVE
 
+    def _get_speeds(
+            self,
+            total: int,
+            processed: int,
+            prev_total: int | None,
+            prev_processed: int | None,
+            gap_sec: int | None,
+    ) -> tuple[int | float | None, int | float | None]:
+        """Gets current load and processing speeds.
+
+        Args:
+            total: Current total tasks.
+            processed: Current processed tasks.
+            prev_total: Total tasks in a previous record.
+            prev_processed: Total processed tasks in a previous record.
+            gap_sec: Time between current and previous record in seconds.
+
+        Returns:
+            A tuple - first is load speed, second is processing speed.
+        """
+        if gap_sec is None or prev_total is None:
+            current_load_speed = None
+            current_processing_speed = None
+        elif gap_sec == 0:
+            current_load_speed = total - prev_total
+            current_processing_speed = processed - prev_processed
+        else:
+            current_load_speed = round((total - prev_total) / gap_sec, 2)
+            current_processing_speed = round(
+                (processed - prev_processed) / gap_sec, 2
+            )
+        return current_load_speed, current_processing_speed
+
     def _get_tasks_graps(self, name):
         history = self.history.get(name, [])
         if history:
@@ -165,6 +202,35 @@ class DashboardMetrics:
             graph_lines["queued"].append(remaining)
         return LineGraph(labels=labels, lines=graph_lines)
 
+    def _get_speed_graps(self, name):
+        history = self.history.get(name, [])
+        if history:
+            history = history.get_seq()
+
+        labels = []
+        speed_lines = {"load_speed": [], "processing_speed": []}
+
+        for offset in history:
+            (
+                processed, remaining, requested,
+                gap_sec, prev_processed, prev_remaining
+            ) = offset
+
+            total = processed + remaining
+            if prev_processed is None:
+                prev_total = None
+            else:
+                prev_total = prev_processed + prev_remaining
+
+            load_speed, processing_speed = self._get_speeds(
+                total, processed, prev_total, prev_processed, gap_sec
+            )
+
+            labels.append(requested.strftime("%m.%d %H:%M"))
+            speed_lines["load_speed"].append(load_speed or 0)
+            speed_lines["processing_speed"].append(processing_speed or 0)
+        return LineGraph(labels=labels, lines=speed_lines)
+
     def _init_topic_metrics(self, name):
         full_history = get_full_history_topic_offsets(name)
 
@@ -182,7 +248,8 @@ class DashboardMetrics:
         self.history[name] = ThinnedHistory(
             reversed(full_history), target_len=TOTAL_GRAPH_POINTS
         )
-        tasks_grap_data = self._get_tasks_graps(name)
+        tasks_graph_data = self._get_tasks_graps(name)
+        speeds_graph_data = self._get_speed_graps(name)
 
         if len(full_history) > 2:
             started = full_history[-2][2]
@@ -194,7 +261,8 @@ class DashboardMetrics:
             **info,
             status=status,
             started=started,
-            full_tasks_graphs=tasks_grap_data,
+            full_tasks_graphs=tasks_graph_data,
+            full_speeds_graphs=speeds_graph_data,
         )
 
     def _init_totals(self):
@@ -228,14 +296,16 @@ class DashboardMetrics:
         )
 
         self.history[name].extend(reversed(new_offsets))
-        tasks_grap_data = self._get_tasks_graps(name)
+        tasks_graph_data = self._get_tasks_graps(name)
+        speeds_graph_data = self._get_speed_graps(name)
 
         self.state["metrics"][name] = OffsetMetrics(
             name=name,
             **info,
             status=status,
             started=metrics.started,
-            full_tasks_graphs=tasks_grap_data,
+            full_tasks_graphs=tasks_graph_data,
+            full_speeds_graphs=speeds_graph_data,
         )
 
     def refresh(self, interval):

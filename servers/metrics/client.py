@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class MetricsClient:
     """A client for making requests to the metrics server.
-    
+
     Attributes:
         host (str): A metric server host.
         port (int): A metric server port.
@@ -27,7 +27,7 @@ class MetricsClient:
 
     def get_dashboard_data(self) -> dict | None:
         """Gets general dashboard data from the metrics server via a socket.
-        
+
         Returns:
             dict | None: Data if succeed, None otherwise.
 

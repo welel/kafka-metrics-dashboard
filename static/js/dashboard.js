@@ -8,6 +8,7 @@ LABELS = {
 }
 
 var tasksLineCharts = {};
+var speedsLineCharts = {};
 var progressPieCharts = {};
 
 
@@ -104,6 +105,34 @@ function fillGraphTasksData(offset_name, graph_data) {
 }
 
 
+function fillGraphSpeedsData(offset_name, graph_data) {
+    let chartData = {
+        labels: graph_data.labels,
+        datasets: [{
+            label: 'Load speed',
+            data: graph_data.lines.load_speed,
+            fill: false,
+            borderColor: 'rgb(255, 99, 132)',
+            tension: 0.1
+        },
+        {
+            label: 'Processing speed',
+            data: graph_data.lines.processing_speed,
+            fill: false,
+            borderColor: 'rgb(75, 192, 192)',
+            tension: 0.1,
+        }]
+    }
+
+    let ctx = document.getElementById(`speedsChart-${offset_name}`);
+
+    speedsLineCharts[offset_name] = new Chart(ctx, {
+        type: 'line',
+        data: chartData
+    });
+}
+
+
 function fillGraphProgressData(offset_name, progress) {
     let percent = progress || 0;
     let chartData = {
@@ -112,8 +141,8 @@ function fillGraphProgressData(offset_name, progress) {
             label: 'Progress',
             data: [percent, 100 - percent],
             backgroundColor: [
-            'rgb(255, 99, 132)',
             'rgb(54, 162, 235)',
+            'rgb(255, 99, 132)',
             ],
             hoverOffset: 4
         }]
@@ -134,6 +163,15 @@ function refreshGraphTasksData(offset_name, graph_data) {
     chart.data.datasets[0].data = graph_data.lines.processed;
     chart.data.datasets[1].data = graph_data.lines.queued;
     chart.data.datasets[2].data = graph_data.lines.total;
+    chart.update();
+}
+
+
+function refreshGraphSpeedsData(offset_name, graph_data) {
+    chart = speedsLineCharts[offset_name];
+    chart.data.labels = graph_data.labels;
+    chart.data.datasets[0].data = graph_data.lines.speed_load;
+    chart.data.datasets[1].data = graph_data.lines.processing_speed;
     chart.update();
 }
 
@@ -279,14 +317,13 @@ function createTopicsAccordion(offsets) {
                     </div>
                     </div>
                     <div class="col-12 col-lg-9">
-                        <style>
-                            /* Set the maximum height for the container */
-                            .chart-container {
-                                max-height: 400px; /* Adjust this value as needed */
-                                overflow-y: auto; /* Enable vertical scrolling if needed */
-                            }
-                        </style>
                         <div><canvas class="chart-container" id="tasksChart-${offset_name}"></canvas></div>
+                    </div>
+                </div>
+
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div><canvas class="chart-container speeds" id="speedsChart-${offset_name}"></canvas></div>
                     </div>
                 </div>
                 </div>
@@ -296,6 +333,7 @@ function createTopicsAccordion(offsets) {
 
         accordion.append(topicAccordionItem);
         fillGraphTasksData(offset_name, values.full_tasks_graphs);
+        fillGraphSpeedsData(offset_name, values.full_speeds_graphs);
         fillGraphProgressData(offset_name, progress);
     }
 }
@@ -358,6 +396,7 @@ function fillTopicsAccordion(metrics) {
         $(`.accordion-item.${offset_name} .topic-time-finishes`).text(finishes);
 
         refreshGraphTasksData(offset_name, values.full_tasks_graphs);
+        refreshGraphSpeedsData(offset_name, values.full_speeds_graphs);
         refreshGraphProgressData(offset_name, progress);
     }
         
