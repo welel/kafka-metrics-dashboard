@@ -99,6 +99,27 @@ def get_active_topic_names_for_sec(sec):
 
 
 def floor_float(number: float, position: int) -> float:
+    """Round a floating-point number down to a specified decimal position.
+
+    This function takes a floating-point number and rounds it down to
+    the specified number of decimal places.
+
+    Args:
+        number: The input number to be rounded.
+        position: The number of decimal places to round down to.
+            A negative value will return the original number.
+
+    Returns:
+        float: The rounded down number with the specified decimal places.
+
+    Example:
+        >>> floor_float(3.1465, 2)
+        3.14
+        >>> floor_float(3.1465, 0)
+        3
+        >>> floor_float(123.456, -1)
+        123.456
+    """
     if position < 0:
         return number
     div = (10 ** position) or 1

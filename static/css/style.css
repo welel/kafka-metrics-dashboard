@@ -58,3 +58,12 @@ body {
 .topic-tasks-number {
     font-weight: 600;
 }
+
+/* Charts */
+.chart-container {
+    max-height: 400px;
+    overflow-y: auto; /* Enable vertical scrolling if needed */
+}
+.chart-container.speeds {
+    max-height: 280px !important;
+}
