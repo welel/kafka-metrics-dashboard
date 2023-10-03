@@ -59,7 +59,9 @@ if not all((DB_USER, DB_NAME, DB_PASSWORD, DB_HOST, DB_PORT)):
 TEMPLATES_PATH = os.path.join(BASE_DIR, "templates")
 
 # Metrics Server
-METRICS_SERVER_HOST = _config.get("metrics_server", "host")
+METRICS_SERVER_HOST = (
+    os.getenv("METRICS_SERVER_HOST") or _config.get("metrics_server", "host")
+)
 METRICS_SERVER_PORT = _config.getint("metrics_server", "port")
 METRICS_SERVER_REFRESH_METRICS_SEC = _config.getint(
     "metrics_server", "refresh_metrics_sec", fallback=10
