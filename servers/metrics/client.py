@@ -23,7 +23,7 @@ class MetricsClient:
         self.host = host
         self.port = port
         self.timeout = 3000
-        self.buffer_size = 20000
+        self.buffer_size = 200000
 
     def get_dashboard_data(self) -> dict | None:
         """Gets general dashboard data from the metrics server via a socket.
@@ -37,6 +37,7 @@ class MetricsClient:
                 serializable.
         """
         sock = None
+        request = None
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             sock.settimeout(self.timeout)
@@ -58,12 +59,21 @@ class MetricsClient:
                 )
                 return None
 
-        except ConnectionError:
-            logger.error("No metrics server connection.")
+        except (ConnectionRefusedError, ConnectionError):
+            logger.error(
+                "No metrics server connection on (%s:%d).",
+                self.host, self.port
+            )
             raise
         except json.decoder.JSONDecodeError:
             logger.error("Json error.", exc_info=True)
             raise
+        except Exception:
+            logger.error(
+                "Error requesting dashboard data. Metrics server address: "
+                "(%s:%d). Request: %s.",
+                self.host, self.port, request
+            )
         finally:
             if sock:
                 sock.close()

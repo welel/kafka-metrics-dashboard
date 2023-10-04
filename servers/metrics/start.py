@@ -22,7 +22,9 @@ logger = logging.getLogger(__name__)
 def metrics_server(host, port):
     server = None
     try:
-        logger.info("Start the server initialization...")
+        logger.info(
+            "Start the server initialization on (%s:%d)...", host, port
+        )
         server = MetricsSocketServer((host, port))
         logger.info(
             "Start %s on %s:%d.", MetricsSocketServer.__name__, host, port
