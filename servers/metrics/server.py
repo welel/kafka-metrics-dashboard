@@ -3,6 +3,7 @@ import socketserver
 import threading
 
 from pydantic import ValidationError
+from servers.mixins import LengthBasedCommunicationMixin
 
 from settings import METRICS_SERVER_REFRESH_METRICS_SEC
 
@@ -45,14 +46,12 @@ class MetricsSocketServer(socketserver.ThreadingTCPServer):
         ).start()
 
 
-class MetricsTCPHandler(socketserver.BaseRequestHandler):
+class MetricsTCPHandler(
+        LengthBasedCommunicationMixin, socketserver.BaseRequestHandler
+):
     """The handler class of `MetricsSocketServer`.
 
-    Arguments:
-        BUFFER_SIZE (int): Receiving message size.
-
     """
-    BUFFER_SIZE = 2048
 
     def _send_response(self, response):
         """Sends a response to the client.
@@ -76,7 +75,7 @@ class MetricsTCPHandler(socketserver.BaseRequestHandler):
                 status=ResponseStatus.ERROR,
                 message=f"Unexpected error: {e}."
             ).model_dump_json()
-        self.request.send(response.encode("utf-8"))
+        self.send(self.request, response.encode("utf-8"))
 
     def _get_request(self):
         """Receives a request from a client.
@@ -84,7 +83,7 @@ class MetricsTCPHandler(socketserver.BaseRequestHandler):
         Returns:
             dict: Response data.
         """
-        raw_data = self.request.recv(self.BUFFER_SIZE).strip()
+        raw_data = self.recv(self.request).strip()
         try:
             return Request.model_validate_json(raw_data)
         except ValidationError as e:
