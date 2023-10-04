@@ -15,6 +15,11 @@ handlers:
     class: logging.FileHandler
     level: DEBUG
     filename: debug.log
+  server.metrics.client:
+    formatter: info
+    class: logging.FileHandler
+    level: DEBUG
+    filename: debug.log
 
 root:
   level: DEBUG

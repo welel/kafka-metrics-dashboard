@@ -66,7 +66,10 @@ class MetricsClient:
             )
             raise
         except json.decoder.JSONDecodeError:
-            logger.error("Json error.", exc_info=True)
+            logger.error(
+                "Invalid JSON response from the metrics server: %s", raw_data,
+                exc_info=True
+            )
             raise
         except Exception:
             logger.error(
