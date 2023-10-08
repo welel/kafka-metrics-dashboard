@@ -2,9 +2,6 @@ const API_URL = api_base_url || 'http://localhost:8000';
 
 LABELS = {
     'db_service': 'DB Service',
-    'tokopedia_1': 'Tokopedia Category Pages',
-    'tokopedia_2': 'Tokopedia Products',
-    'tokopedia_3': 'Tokopedia Sellers',
 }
 
 var tasksLineCharts = {};
