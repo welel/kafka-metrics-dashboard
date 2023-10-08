@@ -167,7 +167,7 @@ function refreshGraphTasksData(offset_name, graph_data) {
 function refreshGraphSpeedsData(offset_name, graph_data) {
     chart = speedsLineCharts[offset_name];
     chart.data.labels = graph_data.labels;
-    chart.data.datasets[0].data = graph_data.lines.speed_load;
+    chart.data.datasets[0].data = graph_data.lines.load_speed;
     chart.data.datasets[1].data = graph_data.lines.processing_speed;
     chart.update();
 }
