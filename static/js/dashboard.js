@@ -2,9 +2,6 @@ const API_URL = api_base_url || 'http://localhost:8000';
 
 LABELS = {
     'db_service': 'DB Service',
-    'tokopedia_1': 'Tokopedia Category Pages',
-    'tokopedia_2': 'Tokopedia Products',
-    'tokopedia_3': 'Tokopedia Sellers',
 }
 
 var tasksLineCharts = {};
@@ -170,7 +167,7 @@ function refreshGraphTasksData(offset_name, graph_data) {
 function refreshGraphSpeedsData(offset_name, graph_data) {
     chart = speedsLineCharts[offset_name];
     chart.data.labels = graph_data.labels;
-    chart.data.datasets[0].data = graph_data.lines.speed_load;
+    chart.data.datasets[0].data = graph_data.lines.load_speed;
     chart.data.datasets[1].data = graph_data.lines.processing_speed;
     chart.update();
 }

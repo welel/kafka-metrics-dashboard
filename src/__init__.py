@@ -15,6 +15,12 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 origins = [
     "http://127.0.0.1:8000",
+    "https://127.0.0.1:8000",
+    "http://loginovpavel.ru",
+    "https://loginovpavel.ru",
+    "https://kmetrics.loginovpavel.ru",
+    "http://kmetrics.loginovpavel.ru",
+    
 ]
 
 app.add_middleware(
