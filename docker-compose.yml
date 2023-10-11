@@ -4,7 +4,7 @@ services:
 
   metrics_app:
     container_name: metrics-app
-    image: sellmatica-metrics-app:1.0
+    image: kafka-metrics-app:1.0
     build:
       context: .
       dockerfile: Dockerfile
@@ -13,20 +13,12 @@ services:
     ports:
       - "8000:80"
     command: ["uvicorn", "src:app", "--host", "0.0.0.0", "--port", "80"]
-    networks:
-      - sellmatica-metrics-collector_default
 
   metrics_server:
     container_name: metrics-server
-    image: sellmatica-metrics-app:1.0
+    image: kafka-metrics-app:1.0
     env_file:
       - .env
     command: ["python", "manage.py", "metrics-server", "--host", "metrics_server", "--port", "6000"]
     depends_on:
       - metrics_app
-    networks:
-      - sellmatica-metrics-collector_default
-
-networks:
-  sellmatica-metrics-collector_default:
-    external: true
